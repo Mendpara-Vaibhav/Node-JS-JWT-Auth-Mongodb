@@ -17,15 +17,15 @@ module.exports = function (app) {
 
   app.get("/api/user", controller.usersList);
 
-  app.get(
+  app.post(
     "/api/add/user",
     [verifySignUp.checkEmptyPasswordOrEmail],
     controller.addUsers
   );
 
-  app.get("/api/update/user/:id", controller.updateUsers);
+  app.put("/api/update/user/:id", controller.updateUsers);
 
-  app.get("/api/delete/user/:id", controller.deleteUsers);
+  app.delete("/api/delete/user/:id", controller.deleteUsers);
 
   app.get("/api/test/user/:id", controller.getUserById);
 
