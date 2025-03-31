@@ -29,6 +29,8 @@ module.exports = function (app) {
 
   app.get("/api/test/user/:id", controller.getUserById);
 
+  app.post("/api/send-email", controller.sendEmail);
+
   app.get(
     "/api/test/mod",
     [authJwt.verifyToken, authJwt.isModerator],

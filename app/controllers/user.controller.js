@@ -117,3 +117,34 @@ exports.getUserById = (req, res) => {
   });
   return;
 };
+
+exports.sendEmail = async (req, res) => {
+  const nodemailer = require("nodemailer");
+
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: "mendparavaibhav@gmail.com",
+      pass: "gtyr hpsq pfgh exek",
+    },
+  });
+
+  var mailOptions = {
+    from: "somerealemail@gmail.com",
+    to: req.body.email,
+    subject: `Hello, ${req.body.username}!`,
+    text: `Sending Email using Node.js[nodemailer], to ${req.body.username}.`,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+    res.status(200).json({ message: "Email sent successfully", info });
+  } catch (error) {
+    console.log("Error sending email:", error);
+    res.status(500).json({ message: "Failed to send email", error });
+  }
+};
