@@ -2,6 +2,8 @@ const db = require("../models");
 const ROLES = db.ROLES;
 const User = db.user;
 const mongoose = require("mongoose");
+const Product = require("../models/product.model");
+const ProductDetail = require("../models/productDetail.model");
 
 exports.allAccess = (req, res) => {
   res.status(200).send("Public Content.");
@@ -49,7 +51,6 @@ exports.addUsers = (req, res) => {
         return;
       }
       console.log("New user added");
-
       if (user) {
         res.status(200).send({ success: true, list: user });
         return;
@@ -81,7 +82,7 @@ exports.updateUsers = (req, res) => {
         res.status(404).send({ message: "User not found." });
       }
     })
-    .catch((err) => {});
+    .catch((err) => { });
 };
 
 exports.deleteUsers = (req, res) => {
@@ -98,7 +99,7 @@ exports.deleteUsers = (req, res) => {
       }
       res.status(200).send({ success: true, message: "User deleted" });
     })
-    .catch((err) => {});
+    .catch((err) => { });
 };
 
 exports.getUserById = (req, res) => {

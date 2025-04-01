@@ -15,20 +15,15 @@ module.exports = function (app) {
 
   app.get("/api/test/user", [authJwt.verifyToken], controller.userBoard);
 
-  app.get("/api/user", controller.usersList);
-
   app.post(
     "/api/add/user",
     [verifySignUp.checkEmptyPasswordOrEmail],
     controller.addUsers
   );
-
-  app.put("/api/update/user/:id", controller.updateUsers);
-
-  app.delete("/api/delete/user/:id", controller.deleteUsers);
-
+  app.get("/api/user", controller.usersList);
   app.get("/api/test/user/:id", controller.getUserById);
-
+  app.put("/api/update/user/:id", controller.updateUsers);
+  app.delete("/api/delete/user/:id", controller.deleteUsers);
   app.post("/api/send-email", controller.sendEmail);
 
   app.get(
