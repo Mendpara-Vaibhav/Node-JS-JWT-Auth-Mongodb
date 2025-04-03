@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const Product = require("../models/product.model");
 const ProductDetail = require("../models/productDetail.model");
 
-
 // exports.addProduct = async (req, res) => {
 //   try {
 //     // Create Product
@@ -38,6 +37,7 @@ exports.addProduct = (req, res) => {
         name: req.body.name,
         price: req.body.price,
         qty: req.body.qty,
+        img: req.body.img,
         is_deleted: false,
     })
         .then((product) => {
@@ -111,7 +111,7 @@ exports.getProductById = async (req, res) => {
     if (!product.length) {
         return res.status(404).send({ success: false, message: "Product not found." });
     }
-    res.status(200).send({ success: true, product: product });
+    res.status(200).send({ success: true, product: product[0] });
     return;
 };
 
@@ -152,7 +152,7 @@ exports.updateProduct = (req, res) => {
             return ProductDetail.findOneAndUpdate(
                 { product_id: new mongoose.Types.ObjectId(req.params.id) },
                 req.body,
-                { new: true }
+                { new: true, upsert: true }
             )
                 .then((productDetail) => {
                     if (!productDetail) {
@@ -160,7 +160,7 @@ exports.updateProduct = (req, res) => {
                         return;
                     }
                     console.log("Product detail updated: ", productDetail);
-                    res.status(200).send({ success: true, product, productDetail });
+                    res.status(200).send({ success: true, product: product, productDetail: productDetail });
                     return;
                 })
                 .catch((err) => {
