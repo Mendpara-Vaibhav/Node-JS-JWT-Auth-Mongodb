@@ -78,21 +78,47 @@ exports.addProduct = (req, res) => {
         });
 };
 
-exports.productList = (req, res) => {
-    Product.find({ is_deleted: false })
-        .then((product) => {
-            if (product) {
-                res.status(200).send({ success: true, list: product });
-                return;
-            } else {
-                res.status(404).send({ message: "Products not found." });
-            }
-        })
-        .catch((err) => {
-            console.log("error in fetching product list: ", err);
-            res.status(500).send({ success: false, message: err });
+// exports.productList = (req, res) => {
+//     Product.find({ is_deleted: false })
+//         .then((product) => {
+//             if (product) {
+//                 res.status(200).send({ success: true, list: product });
+//                 return;
+//             } else {
+//                 res.status(404).send({ message: "Products not found." });
+//             }
+//         })
+//         .catch((err) => {
+//             console.log("error in fetching product list: ", err);
+//             res.status(500).send({ success: false, message: err });
+//         });
+// };
+
+exports.productList = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 3;
+        const skip = (page - 1) * limit;
+        const total = await Product.countDocuments({ is_deleted: false });
+
+        const products = await Product.find({ is_deleted: false })
+            .skip(skip)
+            .limit(limit);
+
+        res.status(200).send({
+            success: true,
+            list: products,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
         });
+    } catch (err) {
+        console.log("Error in fetching paginated product list: ", err);
+        res.status(500).send({ success: false, message: err.message });
+    }
 };
+
 
 exports.getProductById = async (req, res) => {
     const product = await Product.aggregate([
@@ -106,7 +132,7 @@ exports.getProductById = async (req, res) => {
             }
         }
     ]);
-    // console.log("aggregate result:", product);
+    console.log("aggregate result:", product);
 
     if (!product.length) {
         return res.status(404).send({ success: false, message: "Product not found." });
