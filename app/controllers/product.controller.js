@@ -33,49 +33,53 @@ const ProductDetail = require("../models/productDetail.model");
 //   }
 // };
 exports.addProduct = (req, res) => {
-    Product.create({
-        name: req.body.name,
-        price: req.body.price,
-        qty: req.body.qty,
-        img: req.body.img,
-        is_deleted: false,
-    })
-        .then((product) => {
-            if (!product) {
-                return res.status(404).send({ message: "Product is not created." });
-            }
-            console.log("New product added: ", product);
+  const images = Array.isArray(req.body.images)
+    ? req.body.images
+    : [req.body.images];
+  Product.create({
+    name: req.body.name,
+    price: req.body.price,
+    qty: req.body.qty,
+    img: req.body.img,
+    images: images,
+    is_deleted: false,
+  })
+    .then((product) => {
+      if (!product) {
+        return res.status(404).send({ message: "Product is not created." });
+      }
+      console.log("New product added: ", product);
 
-            return ProductDetail.create({
-                product_id: product._id,
-                shortdescription: req.body.shortdescription,
-                longdescription: req.body.longdescription,
-                color: req.body.color,
-                size: req.body.size,
-            })
-                .then((productDetail) => {
-                    if (!productDetail) {
-                        return res
-                            .status(404)
-                            .send({ message: "Product detail is not created." });
-                    }
-                    console.log("Product detail added: ", productDetail);
+      return ProductDetail.create({
+        product_id: product._id,
+        shortdescription: req.body.shortdescription,
+        longdescription: req.body.longdescription,
+        color: req.body.color,
+        size: req.body.size,
+      })
+        .then((productDetail) => {
+          if (!productDetail) {
+            return res
+              .status(404)
+              .send({ message: "Product detail is not created." });
+          }
+          console.log("Product detail added: ", productDetail);
 
-                    res.status(200).send({
-                        success: true,
-                        product: product,
-                        productDetail: productDetail,
-                    });
-                })
-                .catch((err) => {
-                    console.log("adding product detail error: ", err);
-                    res.status(500).send({ success: false, message: err });
-                });
+          res.status(200).send({
+            success: true,
+            product: product,
+            productDetail: productDetail,
+          });
         })
         .catch((err) => {
-            console.log("adding product error: ", err);
-            res.status(500).send({ success: false, message: err });
+          console.log("adding product detail error: ", err);
+          res.status(500).send({ success: false, message: err });
         });
+    })
+    .catch((err) => {
+      console.log("adding product error: ", err);
+      res.status(500).send({ success: false, message: err });
+    });
 };
 
 // exports.productList = (req, res) => {
@@ -95,50 +99,56 @@ exports.addProduct = (req, res) => {
 // };
 
 exports.productList = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 3;
-        const skip = (page - 1) * limit;
-        const total = await Product.countDocuments({ is_deleted: false });
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 3;
+    const skip = (page - 1) * limit;
+    const total = await Product.countDocuments({ is_deleted: false });
 
-        const products = await Product.find({ is_deleted: false })
-            .skip(skip)
-            .limit(limit);
+    const products = await Product.find({ is_deleted: false })
+      .skip(skip)
+      .limit(limit);
 
-        res.status(200).send({
-            success: true,
-            list: products,
-            total,
-            page,
-            limit,
-            totalPages: Math.ceil(total / limit),
-        });
-    } catch (err) {
-        console.log("Error in fetching paginated product list: ", err);
-        res.status(500).send({ success: false, message: err.message });
-    }
+    res.status(200).send({
+      success: true,
+      list: products,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (err) {
+    console.log("Error in fetching paginated product list: ", err);
+    res.status(500).send({ success: false, message: err.message });
+  }
 };
 
-
 exports.getProductById = async (req, res) => {
-    const product = await Product.aggregate([
-        { $match: { _id: new mongoose.Types.ObjectId(req.params.id), is_deleted: false } },
-        {
-            $lookup: {
-                from: 'productdetails',
-                localField: '_id',
-                foreignField: 'product_id',
-                as: 'productDetail'
-            }
-        }
-    ]);
-    console.log("aggregate result:", product);
+  const product = await Product.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.params.id),
+        is_deleted: false,
+      },
+    },
+    {
+      $lookup: {
+        from: "productdetails",
+        localField: "_id",
+        foreignField: "product_id",
+        as: "productDetail",
+      },
+    },
+  ]);
+  console.log("aggregate result:", product);
 
-    if (!product.length) {
-        return res.status(404).send({ success: false, message: "Product not found." });
-    }
-    res.status(200).send({ success: true, product: product[0] });
-    return;
+  if (!product.length) {
+    return res
+      .status(404)
+      .send({ success: false, message: "Product not found." });
+  }
+  res.status(200).send({ success: true, product: product[0] });
+  return;
 };
 
 // exports.getProductById = (req, res) => {
@@ -167,49 +177,53 @@ exports.getProductById = async (req, res) => {
 // };
 
 exports.updateProduct = (req, res) => {
-    Product.findByIdAndUpdate(req.params.id, req.body, { new: true })
-        .then((product) => {
-            if (!product) {
-                res.status(404).send({ message: "Product not found." });
-                return;
-            }
-            console.log("Product updated: ", product);
+  Product.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "Product not found." });
+        return;
+      }
+      console.log("Product updated: ", product);
 
-            return ProductDetail.findOneAndUpdate(
-                { product_id: new mongoose.Types.ObjectId(req.params.id) },
-                req.body,
-                { new: true, upsert: true }
-            )
-                .then((productDetail) => {
-                    if (!productDetail) {
-                        res.status(404).send({ message: "Product detail not found." });
-                        return;
-                    }
-                    console.log("Product detail updated: ", productDetail);
-                    res.status(200).send({ success: true, product: product, productDetail: productDetail });
-                    return;
-                })
-                .catch((err) => {
-                    res.status(500).send({ success: false, message: err.message });
-                });
+      return ProductDetail.findOneAndUpdate(
+        { product_id: new mongoose.Types.ObjectId(req.params.id) },
+        req.body,
+        { new: true, upsert: true }
+      )
+        .then((productDetail) => {
+          if (!productDetail) {
+            res.status(404).send({ message: "Product detail not found." });
+            return;
+          }
+          console.log("Product detail updated: ", productDetail);
+          res.status(200).send({
+            success: true,
+            product: product,
+            productDetail: productDetail,
+          });
+          return;
         })
         .catch((err) => {
-            res.status(500).send({ success: false, message: err.message });
+          res.status(500).send({ success: false, message: err.message });
         });
+    })
+    .catch((err) => {
+      res.status(500).send({ success: false, message: err.message });
+    });
 };
 
 exports.deleteProduct = (req, res) => {
-    Product.findByIdAndUpdate(req.params.id, { is_deleted: true }, { new: true })
-        .then((product) => {
-            if (!product) {
-                res.status(404).send({ message: "Product not found." });
-                return;
-            }
-            console.log("Product deleted: ", product);
-            res.status(200).send({ success: true, product });
-            return;
-        })
-        .catch((err) => {
-            res.status(500).send({ success: false, message: err.message });
-        });
+  Product.findByIdAndUpdate(req.params.id, { is_deleted: true }, { new: true })
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "Product not found." });
+        return;
+      }
+      console.log("Product deleted: ", product);
+      res.status(200).send({ success: true, product });
+      return;
+    })
+    .catch((err) => {
+      res.status(500).send({ success: false, message: err.message });
+    });
 };
