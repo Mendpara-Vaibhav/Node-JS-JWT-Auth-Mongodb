@@ -15,6 +15,8 @@ app.use(express.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/uploads", express.static("uploads"));
+
 const db = require("./app/models");
 const dbConfig = require("./app/config/db.config.js");
 const Role = db.role;
