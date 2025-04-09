@@ -1,6 +1,5 @@
 const controller = require("../controllers/product.controller");
-const express = require("express");
-const upload = require("../middlewares/multer.middleware"); // Import multer config
+const upload = require("../middlewares/multer.middleware");
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -11,9 +10,17 @@ module.exports = function (app) {
     next();
   });
 
-  app.post("/api/add/product", upload, controller.addProduct);
+  app.post(
+    "/api/add/product",
+    upload.array("images", 10),
+    controller.addProduct
+  );
   app.get("/api/product", controller.productList);
   app.get("/api/product/:id", controller.getProductById);
-  app.put("/api/update/product/:id", upload, controller.updateProduct);
+  app.put(
+    "/api/update/product/:id",
+    upload.array("images", 10),
+    controller.updateProduct
+  );
   app.delete("/api/delete/product/:id", controller.deleteProduct);
 };

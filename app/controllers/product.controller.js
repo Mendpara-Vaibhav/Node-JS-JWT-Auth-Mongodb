@@ -12,77 +12,52 @@ const ProductDetail = require("../models/productDetail.model");
 //       is_deleted: false,
 //     });
 
-//     console.log("✅ New product added:", product);
+//     console.log(" New product added:", product);
 
 //     // Create ProductDetail with multiple colors and sizes
 //     const productDetail = await ProductDetail.create({
 //       product_id: product._id,
 //       shortdescription: req.body.shortdescription,
 //       longdescription: req.body.longdescription,
-//       color: req.body.color,  // ✅ Expecting an array of strings
-//       size: req.body.size,    // ✅ Expecting an array of strings
+//       color: req.body.color,  //  Expecting an array of strings
+//       size: req.body.size,    //  Expecting an array of strings
 //     });
 
-//     console.log("✅ Product detail added:", productDetail);
+//     console.log(" Product detail added:", productDetail);
 
 //     res.status(200).send({ success: true, product, productDetail });
 
 //   } catch (err) {
-//     console.error("❌ Error:", err);
+//     console.error(" Error:", err);
 //     res.status(500).send({ success: false, message: err.message });
 //   }
 // };
 
-exports.addProduct = (req, res) => {
-  // const images = Array.isArray(req.body.images)
-  //   ? req.body.images
-  //   : [req.body.images];
+exports.addProduct = async (req, res) => {
+  try {
+    const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
 
-  const imagePaths = req.files.map((file) => file.path);
-  Product.create({
-    name: req.body.name,
-    price: req.body.price,
-    qty: req.body.qty,
-    img: req.body.img,
-    images: imagePaths,
-    is_deleted: false,
-  })
-    .then((product) => {
-      if (!product) {
-        return res.status(404).send({ message: "Product is not created." });
-      }
-      console.log("New product added: ", product);
-
-      return ProductDetail.create({
-        product_id: product._id,
-        shortdescription: req.body.shortdescription,
-        longdescription: req.body.longdescription,
-        color: req.body.color,
-        size: req.body.size,
-      })
-        .then((productDetail) => {
-          if (!productDetail) {
-            return res
-              .status(404)
-              .send({ message: "Product detail is not created." });
-          }
-          console.log("Product detail added: ", productDetail);
-
-          res.status(200).send({
-            success: true,
-            product: product,
-            productDetail: productDetail,
-          });
-        })
-        .catch((err) => {
-          console.log("adding product detail error: ", err);
-          res.status(500).send({ success: false, message: err });
-        });
-    })
-    .catch((err) => {
-      console.log("adding product error: ", err);
-      res.status(500).send({ success: false, message: err });
+    const product = await Product.create({
+      name: req.body.name,
+      price: req.body.price,
+      qty: req.body.qty,
+      img: req.body.img,
+      images: imagePaths,
+      is_deleted: false,
     });
+
+    const productDetail = await ProductDetail.create({
+      product_id: product._id,
+      shortdescription: req.body.shortdescription,
+      longdescription: req.body.longdescription,
+      color: JSON.parse(req.body.color),
+      size: JSON.parse(req.body.size),
+    });
+
+    res.status(200).send({ success: true, product, productDetail });
+  } catch (err) {
+    res.status(500).send({ success: false, message: err.message });
+  }
 };
 
 // exports.productList = (req, res) => {
@@ -217,10 +192,9 @@ exports.getProductById = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const imageFiles = req.files?.images || []; // multer fields
-    const imagePaths = imageFiles.map((file) => `uploads/${file.filename}`);
+    const newImages =
+      req.files?.map((file) => `uploads/${file.filename}`) || [];
 
-    // Update Product
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       {
@@ -228,17 +202,12 @@ exports.updateProduct = async (req, res) => {
         price: req.body.price,
         qty: req.body.qty,
         img: req.body.img,
-        images: imagePaths, // <-- this is key
+        ...(newImages.length > 0 && { images: newImages }), // only overwrite if new images uploaded
       },
       { new: true }
     );
 
-    if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    // Update Detail
-    const updatedDetail = await ProductDetail.findOneAndUpdate(
+    const updatedProductDetail = await ProductDetail.findOneAndUpdate(
       { product_id: req.params.id },
       {
         shortdescription: req.body.shortdescription,
@@ -249,16 +218,60 @@ exports.updateProduct = async (req, res) => {
       { new: true, upsert: true }
     );
 
-    return res.status(200).json({
+    res.status(200).send({
       success: true,
       product: updatedProduct,
-      productDetail: updatedDetail,
+      productDetail: updatedProductDetail,
     });
   } catch (err) {
-    console.error("updateProduct error:", err);
-    return res.status(500).json({ success: false, message: err.message });
+    res.status(500).send({ success: false, message: err.message });
   }
 };
+
+// exports.updateProduct = async (req, res) => {
+//   try {
+//     const imageFiles = req.files?.images || []; // multer fields
+//     const imagePaths = imageFiles.map((file) => `uploads/${file.filename}`);
+
+//     // Update Product
+//     const updatedProduct = await Product.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         name: req.body.name,
+//         price: req.body.price,
+//         qty: req.body.qty,
+//         img: req.body.img,
+//         images: imagePaths, // <-- this is key
+//       },
+//       { new: true }
+//     );
+
+//     if (!updatedProduct) {
+//       return res.status(404).json({ message: "Product not found" });
+//     }
+
+//     // Update Detail
+//     const updatedDetail = await ProductDetail.findOneAndUpdate(
+//       { product_id: req.params.id },
+//       {
+//         shortdescription: req.body.shortdescription,
+//         longdescription: req.body.longdescription,
+//         color: JSON.parse(req.body.color),
+//         size: JSON.parse(req.body.size),
+//       },
+//       { new: true, upsert: true }
+//     );
+
+//     return res.status(200).json({
+//       success: true,
+//       product: updatedProduct,
+//       productDetail: updatedDetail,
+//     });
+//   } catch (err) {
+//     console.error("updateProduct error:", err);
+//     return res.status(500).json({ success: false, message: err.message });
+//   }
+// };
 
 exports.deleteProduct = (req, res) => {
   Product.findByIdAndUpdate(req.params.id, { is_deleted: true }, { new: true })

@@ -1,7 +1,6 @@
 const multer = require("multer");
 const path = require("path");
 
-// Storage setup
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -11,7 +10,6 @@ const storage = multer.diskStorage({
   },
 });
 
-// Filter (optional)
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
@@ -22,5 +20,4 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-// Export field-based upload
-module.exports = upload.fields([{ name: "images", maxCount: 10 }]);
+module.exports = upload;

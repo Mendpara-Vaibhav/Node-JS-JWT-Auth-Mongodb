@@ -3,6 +3,8 @@ const cors = require("cors");
 
 const app = express();
 
+const path = require("path");
+
 var corsOptions = {
   origin: "http://localhost:3000",
 };
@@ -15,7 +17,7 @@ app.use(express.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const db = require("./app/models");
 const dbConfig = require("./app/config/db.config.js");
