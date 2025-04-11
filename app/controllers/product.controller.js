@@ -2,37 +2,6 @@ const mongoose = require("mongoose");
 const Product = require("../models/product.model");
 const ProductDetail = require("../models/productDetail.model");
 
-// exports.addProduct = async (req, res) => {
-//   try {
-//     // Create Product
-//     const product = await Product.create({
-//       name: req.body.name,
-//       price: req.body.price,
-//       qty: req.body.qty,
-//       is_deleted: false,
-//     });
-
-//     console.log(" New product added:", product);
-
-//     // Create ProductDetail with multiple colors and sizes
-//     const productDetail = await ProductDetail.create({
-//       product_id: product._id,
-//       shortdescription: req.body.shortdescription,
-//       longdescription: req.body.longdescription,
-//       color: req.body.color,  //  Expecting an array of strings
-//       size: req.body.size,    //  Expecting an array of strings
-//     });
-
-//     console.log(" Product detail added:", productDetail);
-
-//     res.status(200).send({ success: true, product, productDetail });
-
-//   } catch (err) {
-//     console.error(" Error:", err);
-//     res.status(500).send({ success: false, message: err.message });
-//   }
-// };
-
 exports.addProduct = async (req, res) => {
   try {
     const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
@@ -46,6 +15,8 @@ exports.addProduct = async (req, res) => {
       is_deleted: false,
     });
 
+    console.log("New product added:", product);
+
     const productDetail = await ProductDetail.create({
       product_id: product._id,
       shortdescription: req.body.shortdescription,
@@ -54,27 +25,13 @@ exports.addProduct = async (req, res) => {
       size: JSON.parse(req.body.size),
     });
 
+    console.log("Product detail added:", productDetail);
+
     res.status(200).send({ success: true, product, productDetail });
   } catch (err) {
     res.status(500).send({ success: false, message: err.message });
   }
 };
-
-// exports.productList = (req, res) => {
-//     Product.find({ is_deleted: false })
-//         .then((product) => {
-//             if (product) {
-//                 res.status(200).send({ success: true, list: product });
-//                 return;
-//             } else {
-//                 res.status(404).send({ message: "Products not found." });
-//             }
-//         })
-//         .catch((err) => {
-//             console.log("error in fetching product list: ", err);
-//             res.status(500).send({ success: false, message: err });
-//         });
-// };
 
 exports.productList = async (req, res) => {
   try {
@@ -118,7 +75,7 @@ exports.getProductById = async (req, res) => {
       },
     },
   ]);
-  console.log("aggregate result:", product);
+  // console.log("aggregate result:", product);
 
   if (!product.length) {
     return res
@@ -128,67 +85,6 @@ exports.getProductById = async (req, res) => {
   res.status(200).send({ success: true, product: product[0] });
   return;
 };
-
-// exports.getProductById = (req, res) => {
-//   Product.findById(req.params.id)
-//     .then((product) => {
-//       if (!product) {
-//         res.status(404).send({ message: "Products not found." });
-//         return;
-//       }
-
-//       return ProductDetail.find({ product_id: req.params.id })
-//         .then((productDetail) => {
-//           if (!productDetail) {
-//             res.status(404).send({ message: "Product detail not found." });
-//             return;
-//           }
-//           res.status(200).send({ success: true, product, productDetail });
-//         })
-//         .catch((err) => {
-//           res.status(500).send({ success: false, message: err.message });
-//         });
-//     })
-//     .catch((err) => {
-//       res.status(500).send({ success: false, message: err.message });
-//     });
-// };
-
-// exports.updateProduct = (req, res) => {
-//   Product.findByIdAndUpdate(req.params.id, req.body, { new: true })
-//     .then((product) => {
-//       if (!product) {
-//         res.status(404).send({ message: "Product not found." });
-//         return;
-//       }
-//       console.log("Product updated: ", product);
-
-//       return ProductDetail.findOneAndUpdate(
-//         { product_id: new mongoose.Types.ObjectId(req.params.id) },
-//         req.body,
-//         { new: true, upsert: true }
-//       )
-//         .then((productDetail) => {
-//           if (!productDetail) {
-//             res.status(404).send({ message: "Product detail not found." });
-//             return;
-//           }
-//           console.log("Product detail updated: ", productDetail);
-//           res.status(200).send({
-//             success: true,
-//             product: product,
-//             productDetail: productDetail,
-//           });
-//           return;
-//         })
-//         .catch((err) => {
-//           res.status(500).send({ success: false, message: err.message });
-//         });
-//     })
-//     .catch((err) => {
-//       res.status(500).send({ success: false, message: err.message });
-//     });
-// };
 
 exports.updateProduct = async (req, res) => {
   try {
@@ -227,51 +123,6 @@ exports.updateProduct = async (req, res) => {
     res.status(500).send({ success: false, message: err.message });
   }
 };
-
-// exports.updateProduct = async (req, res) => {
-//   try {
-//     const imageFiles = req.files?.images || []; // multer fields
-//     const imagePaths = imageFiles.map((file) => `uploads/${file.filename}`);
-
-//     // Update Product
-//     const updatedProduct = await Product.findByIdAndUpdate(
-//       req.params.id,
-//       {
-//         name: req.body.name,
-//         price: req.body.price,
-//         qty: req.body.qty,
-//         img: req.body.img,
-//         images: imagePaths, // <-- this is key
-//       },
-//       { new: true }
-//     );
-
-//     if (!updatedProduct) {
-//       return res.status(404).json({ message: "Product not found" });
-//     }
-
-//     // Update Detail
-//     const updatedDetail = await ProductDetail.findOneAndUpdate(
-//       { product_id: req.params.id },
-//       {
-//         shortdescription: req.body.shortdescription,
-//         longdescription: req.body.longdescription,
-//         color: JSON.parse(req.body.color),
-//         size: JSON.parse(req.body.size),
-//       },
-//       { new: true, upsert: true }
-//     );
-
-//     return res.status(200).json({
-//       success: true,
-//       product: updatedProduct,
-//       productDetail: updatedDetail,
-//     });
-//   } catch (err) {
-//     console.error("updateProduct error:", err);
-//     return res.status(500).json({ success: false, message: err.message });
-//   }
-// };
 
 exports.deleteProduct = (req, res) => {
   Product.findByIdAndUpdate(req.params.id, { is_deleted: true }, { new: true })
