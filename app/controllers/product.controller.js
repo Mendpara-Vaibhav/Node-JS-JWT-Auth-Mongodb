@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Product = require("../models/product.model");
 const ProductDetail = require("../models/productDetail.model");
+const Order = require("../models/Order");
 
 exports.addProduct = async (req, res) => {
   try {
@@ -138,4 +139,25 @@ exports.deleteProduct = (req, res) => {
     .catch((err) => {
       res.status(500).send({ success: false, message: err.message });
     });
+};
+
+exports.createOrder = async (req, res) => {
+  try {
+    // console.log("Incoming Order:", req.body);
+    const { products, totalAmount } = req.body;
+
+    if (!products || !products.length || !totalAmount) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const newOrder = new Order({ products, totalAmount });
+    await newOrder.save();
+
+    res
+      .status(201)
+      .json({ message: "Order placed successfully", order: newOrder });
+  } catch (error) {
+    console.error("Order creation error:", error);
+    res.status(500).json({ message: "Failed to create order" });
+  }
 };

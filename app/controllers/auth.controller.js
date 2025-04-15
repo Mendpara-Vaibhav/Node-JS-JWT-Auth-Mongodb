@@ -16,19 +16,6 @@ exports.signup = async (req, res) => {
 
     await user.save();
 
-    // if (req.body.roles && req.body.roles.length > 0) {
-    //   const roles = await Role.find({
-    //     name: { $in: req.body.roles },
-    //   });
-
-    //   user.roles = roles.map((role) => role._id);
-    // } else {
-    //   const role = await Role.findOne({ name: "user" });
-    //   user.roles = [role._id];
-    // }
-
-    // await user.save();
-
     res.send({ message: "User was registered successfully!" });
   } catch (err) {
     console.error("Signup error:", err);
@@ -62,10 +49,6 @@ exports.signin = async (req, res) => {
       expiresIn: 3600, // 1 hours
       // expiresIn: 86400, // 24 hours
     });
-
-    // const authorities = user.roles.map(
-    //   (role) => "ROLE_" + role.name.toUpperCase()
-    // );
 
     res.status(200).send({
       id: user._id,

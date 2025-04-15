@@ -23,4 +23,5 @@ module.exports = function (app) {
     controller.updateProduct
   );
   app.delete("/api/delete/product/:id", controller.deleteProduct);
+  app.post("/api/order", controller.createOrder);
 };
