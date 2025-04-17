@@ -11,6 +11,16 @@ const Order = mongoose.model(
       },
     ],
     totalAmount: { type: Number },
+    paymentInfo: {
+      id: String, // Razorpay Payment ID
+      order_id: String, // Razorpay Order ID
+      signature: String, // Razorpay Signature
+      amount: Number, // in rupees
+      currency: String,
+      status: String,
+      receipt: String,
+      paidAt: Date,
+    },
   })
 );
 

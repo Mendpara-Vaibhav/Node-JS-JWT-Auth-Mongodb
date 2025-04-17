@@ -141,18 +141,19 @@ exports.deleteProduct = (req, res) => {
     });
 };
 
-exports.createOrder = async (req, res) => {
+exports.placeOrder = async (req, res) => {
   try {
-    // console.log("Incoming Order:", req.body);
-    const { products, totalAmount } = req.body;
+    console.log("Incoming Order:", req.body);
+    const { products, totalAmount, paymentInfo } = req.body;
 
-    if (!products || !products.length || !totalAmount) {
+    if (!products || !products.length || !totalAmount || !paymentInfo) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const newOrder = new Order({ products, totalAmount });
+    const newOrder = new Order({ products, totalAmount, paymentInfo });
     await newOrder.save();
 
+    console.log("New order created:", newOrder);
     res
       .status(201)
       .json({ message: "Order placed successfully", order: newOrder });
